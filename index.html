@@ -82,6 +82,43 @@
       text-align: center;
       max-width: 80%;
     }
+
+    /* Selector de animaciones */
+    #anim-selector {
+      position: absolute;
+      bottom: 100px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 100;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      max-width: 90%;
+      justify-content: center;
+    }
+
+    .anim-btn {
+      background: rgba(255,255,255,0.12);
+      color: white;
+      border: 1px solid rgba(255,255,255,0.25);
+      border-radius: 16px;
+      padding: 8px 14px;
+      font-size: 12px;
+      cursor: pointer;
+      backdrop-filter: blur(6px);
+      white-space: nowrap;
+      transition: background 0.15s ease, border-color 0.15s ease;
+    }
+
+    .anim-btn:hover {
+      background: rgba(255,255,255,0.22);
+    }
+
+    .anim-btn.active {
+      background: #0066cc;
+      border-color: #0066cc;
+      font-weight: bold;
+    }
   </style>
 </head>
 <body>
@@ -90,7 +127,7 @@
 
   <model-viewer
     id="viewer"
-    src="Glossy1.glb"
+    src="Glossy.glb"
     alt="Modelo 3D"
     ar
     ar-modes="webxr scene-viewer quick-look"
@@ -105,13 +142,16 @@
     exposure="1.2"
     loading="eager"
     autoplay
-    animation-name="mix glossyAction"
+    animation-name="Todas"
   >
     <!-- Botón AR personalizado -->
     <button slot="ar-button" id="ar-button">
       👁️ Ver en AR
     </button>
   </model-viewer>
+
+  <!-- Selector de animaciones (se llena dinámicamente) -->
+  <div id="anim-selector"></div>
 
   <!-- Mensaje cuando AR no está disponible -->
   <div id="ar-not-available">
@@ -123,9 +163,42 @@
     const viewer = document.getElementById('viewer');
     const arButton = document.getElementById('ar-button');
     const arNotAvailable = document.getElementById('ar-not-available');
-    
+    const animSelector = document.getElementById('anim-selector');
+
+    // Nombre de la animación combinada que reproduce todos los clips a la vez
+    const ALL_ANIMATIONS_NAME = 'Todas';
+
+    function setActiveButton(name) {
+      [...animSelector.children].forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.name === name);
+      });
+    }
+
+    function playAnimation(name) {
+      viewer.animationName = name;
+      viewer.currentTime = 0;
+      viewer.play({ repetitions: Infinity });
+      setActiveButton(name);
+    }
+
+    function buildAnimationButtons() {
+      animSelector.innerHTML = '';
+      const names = viewer.availableAnimations || [];
+      names.forEach(name => {
+        const btn = document.createElement('button');
+        btn.className = 'anim-btn';
+        btn.dataset.name = name;
+        btn.textContent = (name === ALL_ANIMATIONS_NAME) ? '✨ Todas' : name;
+        btn.addEventListener('click', () => playAnimation(name));
+        animSelector.appendChild(btn);
+      });
+      setActiveButton(ALL_ANIMATIONS_NAME);
+    }
+
     viewer.addEventListener('load', () => {
       console.log('✅ Modelo cargado correctamente');
+      buildAnimationButtons();
+      playAnimation(ALL_ANIMATIONS_NAME);
     });
 
     viewer.addEventListener('error', (e) => {
@@ -157,3 +230,4 @@
 
 </body>
 </html>
+
