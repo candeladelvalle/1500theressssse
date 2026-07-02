@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AR Modelo 3D</title>
+
+  <!-- model-viewer de Google -->
+  <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.5.0/model-viewer.min.js"></script>
+
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #1a1a1a;
+      color: white;
+      height: 100vh;
+      overflow: hidden;
+    }
+    
+    model-viewer {
+      width: 100vw;
+      height: 100vh;
+      background-color: #1a1a1a;
+    }
+
+    /* Botón AR personalizado */
+    #ar-button {
+      background-color: #0066cc;
+      color: white;
+      border: none;
+      border-radius: 24px;
+      padding: 14px 28px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(0,102,204,0.4);
+      position: absolute;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    #ar-button:hover {
+      background-color: #0052a3;
+    }
+
+    #ar-button:active {
+      transform: translateX(-50%) scale(0.98);
+    }
+
+    /* Info top */
+    #info {
+      position: absolute;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0,0,0,0.7);
+      padding: 10px 20px;
+      border-radius: 24px;
+      font-size: 14px;
+      z-index: 10;
+    }
+
+    /* Mensaje de no AR */
+    #ar-not-available {
+      background: rgba(255,140,0,0.9);
+      color: white;
+      border-radius: 24px;
+      padding: 14px 28px;
+      font-size: 14px;
+      position: absolute;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 100;
+      display: none;
+      text-align: center;
+      max-width: 80%;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="info">📱 Modelo 3D</div>
+
+  <model-viewer
+    id="viewer"
+    src="Glossy1.glb"
+    alt="Modelo 3D"
+    ar
+    ar-modes="webxr scene-viewer quick-look"
+    ar-scale="auto"
+    camera-controls
+    touch-action="pan-y"
+    auto-rotate
+    auto-rotate-delay="3000"
+    rotation-per-second="20deg"
+    shadow-intensity="1"
+    environment-image="neutral"
+    exposure="1.2"
+    loading="eager"
+    autoplay
+    animation-name="mix glossyAction"
+  >
+    <!-- Botón AR personalizado -->
+    <button slot="ar-button" id="ar-button">
+      👁️ Ver en AR
+    </button>
+  </model-viewer>
+
+  <!-- Mensaje cuando AR no está disponible -->
+  <div id="ar-not-available">
+    ⚠️ AR no disponible en este dispositivo<br>
+    <small>Usa Android con Chrome, o iPhone con Safari</small>
+  </div>
+
+  <script>
+    const viewer = document.getElementById('viewer');
+    const arButton = document.getElementById('ar-button');
+    const arNotAvailable = document.getElementById('ar-not-available');
+    
+    viewer.addEventListener('load', () => {
+      console.log('✅ Modelo cargado correctamente');
+    });
+
+    viewer.addEventListener('error', (e) => {
+      console.error('❌ Error cargando modelo:', e.detail);
+    });
+
+    // Verificar si AR está disponible
+    viewer.addEventListener('ar-status', (event) => {
+      console.log('🔍 AR status:', event.detail.status);
+      
+      if (event.detail.status === 'not-presenting') {
+        // Estado normal, no hacer nada
+      } else if (event.detail.status === 'failed') {
+        console.error('❌ AR falló');
+      }
+    });
+
+    // Verificar capacidad de AR después de un momento
+    setTimeout(() => {
+      if (!viewer.canActivateAR) {
+        console.warn('⚠️ AR no disponible en este dispositivo');
+        arButton.style.display = 'none';
+        arNotAvailable.style.display = 'block';
+      } else {
+        console.log('✅ AR disponible');
+      }
+    }, 2000);
+  </script>
+
+</body>
+</html>
