@@ -123,6 +123,8 @@
 </head>
 <body>
 
+  <div id="info">📱 Modelo 3D</div>
+
   <model-viewer
     id="viewer"
     src="Glossy.glb"
@@ -166,9 +168,34 @@
     // Nombre de la animación combinada que reproduce todos los clips a la vez
     const ALL_ANIMATIONS_NAME = 'Todas';
 
+    // Mapeo animación -> índice de material (1 material por pieza/nodo en este modelo)
+    const ANIMATION_TO_MATERIAL = {
+      'mix glossyAction': 0,
+      'glossy 1 y 2Action': 1,
+      'glossy1Action': 2,
+      'glossy 3Action': 3,
+      'glossy 5 y 4Action': 4,
+      'Scaniverse_2026_03_13_174718Action': 5,
+      'Scaniverse_2026_03_13_175219Action': 6,
+    };
+
     function setActiveButton(name) {
       [...animSelector.children].forEach(btn => {
         btn.classList.toggle('active', btn.dataset.name === name);
+      });
+    }
+
+    // Muestra solo el material asociado a la animación elegida (opacidad 0 en el resto).
+    // Si name === ALL_ANIMATIONS_NAME, todos vuelven a opacidad 1.
+    function isolateMaterial(name) {
+      const materials = viewer.model.materials;
+      const targetIndex = ANIMATION_TO_MATERIAL[name];
+
+      materials.forEach((material, index) => {
+        const visible = (name === ALL_ANIMATIONS_NAME) || (index === targetIndex);
+        const base = material.pbrMetallicRoughness.baseColorFactor;
+        material.pbrMetallicRoughness.setBaseColorFactor([base[0], base[1], base[2], visible ? 1 : 0]);
+        material.setAlphaMode(visible ? 'OPAQUE' : 'BLEND');
       });
     }
 
@@ -176,6 +203,7 @@
       viewer.animationName = name;
       viewer.currentTime = 0;
       viewer.play({ repetitions: Infinity });
+      isolateMaterial(name);
       setActiveButton(name);
     }
 
